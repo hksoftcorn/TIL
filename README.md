@@ -1,4 +1,4 @@
-# 🍦This is hksoftcorn(Wongi)'s TIL (Today I Learned)
+# 🍦This is hksoftcorn's TIL (Today I Learned)
 
 
 
