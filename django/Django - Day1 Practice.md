@@ -198,9 +198,9 @@ def index(request):
 
   
 
-### 4. HTML Form 
+### 4. Practices
 
-#### 4.1. Form
+#### 4.1. HTML Form
 
 웹에서 사용자 정보를 입력하는 여러 방식을 제공하고, 사용자로부터 할당된 데이터를 서버로 전송하는 역할을 담당합니다. 
 
@@ -223,8 +223,8 @@ def index(request):
 - action = 어디로 보낼지 url를 지정합니다.
 - input = 어떤 데이터를 받을지 설정합니다.
   - label : 이름표를 붙여줍니다.
-  - name : 변수명입니다 
-  - id : 
+  - name : 변수명입니다.
+  - id : 아이디입니다.
 - submit = 데이터 제출
 
 ```html
@@ -245,8 +245,126 @@ def index(request):
 
 
 
-### 5. Variable Routing 동적 라우팅
+#### 4.2. Variable Routing 동적 라우팅
 
-두 수를 입력받아서 곱을 출력하는 페이지를 작성합니다
+두 수를 입력받아서 곱을 출력하는 페이지를 작성합니다. 
 
-#### 5.1. urls : 
+`urls.py`
+
+```django
+urlpatterns = [
+    path('times/<int:num1>/<int:num2>/', views.times, name='times'),
+]
+```
+
+`times.html`
+
+```django
+{% extends 'base.html' %}
+{% block content %}
+  <h1>{{ num1 }} x {{ num2 }} = {{ result }}</h1>
+{% endblock content %}
+```
+
+
+
+#### 4.3. DTL  (Django template language)
+
+##### 4.3.1. For tag
+
+```django
+{% for food in foods %}
+	<p>{{ food }}</p>
+{% endfor %}
+
+{% for food in foods %}
+	<p>{{ forloop.counter }}. {{ food }}</p>
+{% endfor %}
+
+{% for elem in empty_list %}
+	<p>{{ elem }}</p>
+{% empty %}
+	<p> 현재 가입한 유저가 없습니다. </p>
+{% endfor %}
+```
+
+- forloop.counter
+- empty
+
+##### 4.3.2. If tag
+
+```django
+{% if '닭고기' in foods %}
+	<p>닭고기는 치킨이겠죠?!~</p>
+{% else %}
+	<p>치킨추가</p>
+{% endif %}
+
+{% for food in foods %}
+	{% if forloop.first %}
+		<p>{{ food }}은 미스터 초밥왕</p>
+	{% else %}
+		<p>{{ food }}</p>
+	{% endif %}
+{% endfor %}
+```
+
+- if else
+- forloop.first
+
+##### 4.3.3. filter tag
+
+```django
+{% for fruit in fruits %}
+	{% if fruit|length > 5 %}
+		<p>pass</p>
+	{% else %}
+		<p>{{ fruit }}, {{ fruit|length }} 입니다. </p>
+	{% endif %}
+{% endfor %}
+```
+
+##### 4.3.4. lorem ipsum & String filter
+
+```django
+{% lorem %}
+
+{% lorem 2 p random %}
+
+{{ 'ABC'|lower }}
+
+{{ my_sentence|title }}
+
+{{ foods|random }}
+```
+
+##### 4.3.5. only add
+
+```django
+{{ 4|add:6 }}
+```
+
+##### 4.3.6. Datetime
+
+```django
+{% now "DATE_FORMAT" %}
+
+{% now "DATETIME_FORMAT" %}
+
+{% now "SHORT_DATE_FORMAT" %}
+
+{% now "SHORT_DATETIME_FORMAT" %}
+
+{% now "Y-m-d H:i" %}
+
+{% now "jS F Y H:i" %}
+
+{% now "Y년 m월 d일 (D) H:i" %}
+
+{% now "Y년 m월 d일 (D) A h:i" %}
+
+Copyright {% now "Y" %}
+
+{% now "Y" as current_year %}
+변수로도 사용이 가능합니다 : {{ current_year }}
+```

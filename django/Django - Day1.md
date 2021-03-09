@@ -133,3 +133,22 @@ Hyper Text Transfer Protocol : 웹에서 이루어지는 모든 데이터 교환
 
 이름공간은 객체를 구분할 수 있는 범위를 나타내는 말로 일반적으로 하나의 이름 공간에서는 하나의 이름이 단 하나의 객체만을 가리키게 됩니다. Django는 서로 다른 app의 같은 이름을 가진 url name은 이름공간을 설정해서 구분합니다.
 
+django에서는 서로 다른 app의 같은 이름을 가진 url name은 이름공간을 설정해서 구분합니다. templates, static 등 django는 정해진 경로 하나로 모아서 보기 때문에 중간에 폴더를 임의로 만들어 줌으로써 이름공간을 설정합니다. url에 namespace를 설정함으로써 어떤 app에 작성된 url name인지 정확히 사용할 수 있습니다. 즉 templates의 폴더 구조를 app_name/templates/app_name 형태로 변경해 임의로 이름 공간 생성 후 변경된 추가 경로로 수정합니다.
+
+```django
+app_name = 'articles'
+urlpatterns = [
+    path('lotto/', views.lotto, name='lotto'),
+    path('index/', views.index, name='index'),
+    path('fakegoogle/', views.fakegoogle, name='fakegoogle'),
+    path('times/<int:num1>/<int:num2>/', views.times, name='times'),
+    path('dtl-practice', views.dtl_practice, name='dtl_practice'),
+]
+```
+
+```django
+<a href="{% url 'articles:index' %}">메인 페이지</a>
+
+def index(request):
+	return render(request, 'articles/index.html')
+```
