@@ -1,6 +1,6 @@
 [TOC]
 
-# Django - Practice
+# Django - Day1 Practice
 
 ### 1. 프로젝트 시작
 
