@@ -206,5 +206,26 @@ def create(request):
     '''
 ```
 
-데이터를 전송(POST)할 때 인증을 목적으로 csrf_token(cookie)을 함께 데이터를 보내게 됩니다. create에서도 GET방식이 아닌 데이터를 보내는 방식인 POST로 수정하게 됩니다.
+데이터를 전송(POST)할 때 인증을 목적으로 csrf_token(cookie)을 함께 데이터를 보내게 됩니다. create에서도 GET방식이 아닌 데이터를 보내는 방식인 POST로 수정하게 됩니다. 그리고 주소를 redirect하게 됩니다.
+
+**fixed views.py**
+
+```python
+from django.shortcuts import render, redirect
+
+def create(request):
+    # 1. new로 부터 받은 데이터 저장
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+
+    # 2. 저장한 데이터를 DB에 저장
+    article = Article(title=title, content=content)
+    article.save()
+
+    return redirect('articles:index')
+```
+
+
+
+#### 
 

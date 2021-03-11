@@ -211,7 +211,7 @@ admin.site.register(Article, ArticleAdmin)
 
 #### 5.2. POST
 
-POST 요청은 리소스를 생성/변경하기 위해 데이터를 HTTP BODY에 담아 전송합니다.
+POST 요청은 리소스를 생성/변경하기 위해 데이터를 HTTP BODY에 담아 전송합니다. GET방식은 url에 변수들이 담겨서 보내지게 됩니다. 하지만 이는 url의 길이를 엄청나게 길어지게 할 뿐만 아니라 정보의 노출의 문제도 있습니다. POST 방식으로 데이터를 보낼 수 있습니다.
 
 - GET -> CRUD 에서 R에만 해당
 
@@ -220,3 +220,120 @@ POST 요청은 리소스를 생성/변경하기 위해 데이터를 HTTP BODY에
 > CSRF Token
 >
 > 데이터를 전송할 때 인증을 목적으로 token(cookie)을 함께 데이터를 보내게 됩니다.
+
+**Post로 변경 후 변화하는 것들**
+
+- request.POST.get()
+- csrf token도 함께 보내주어야 함
+- 더이상 url에 내가 넘기는 데이터가 노출되지 않음
+- POST는 HTML을 요청하는 것이 아니기 때문에 HTML 문서를 받아볼 수 있는 곳으로 다시 redirect해야 함
+
+
+
+#### 5.3. DETAIL page
+
+urls.py
+
+```python
+urlpatterns = [
+    path('<int:pk>/', views.detail, name='detail')
+]
+```
+
+views.py
+
+```python
+def detail(request, pk):
+    # 몇 번째(pk) 글을 조회할건지 가져와야 합니다.
+    article = Article.objects.get(pk=pk)
+    context = {
+        'article': article
+    }
+    return render(request, 'articles/detail.html', context)
+```
+
+detail.html
+
+```django
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>DETAIL</h2>
+  <hr>
+  <h2>제목 : {{ article.title }}</h2>
+  <h3>{{ article.pk }} 번째 글</h3>
+  <hr>
+  <h3>내용 : {{ article.content }}</h3>
+  <h3>작성시각 : {{ article.created_at }}</h3>
+  <h3>수정시각 : {{ article.updated_at }}</h3>
+
+{% endblock content %}
+```
+
+index.html
+
+```django
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Articles</h1>
+  <a href="{% url 'articles:new' %}">[NEW]</a>
+  {% for article in articles %}
+    <p>글 번호 : {{ article.pk }}</p>
+    <p>글 제목 : {{ article.title }}</p>
+    <p>글 내용 : {{ article.content }}</p>
+    <a href="{% url 'articles:detail' article.pk %}">[DETAIL]</a>
+    <hr>
+  {% endfor %}
+{% endblock %}
+```
+
+views.py
+
+```python
+def create(request):
+    title = request.POST.get('title')
+    content = request.POST.get('content')
+
+    article = Article(title=title, content=content)
+    article.save()
+	
+    # return redirect(f'articles/{article.pk}/')
+    return redirect('articles:detail', article.pk)
+```
+
+#### 5.4. Delete page
+
+urls.py
+
+```python
+urlpatterns = [
+    path("<int:pk>/delete/", views.delete , name="delete"),
+]
+```
+
+views.py
+
+```python
+def delete(request, pk):
+    article = Article.objects.get(pk=pk)
+    if request.method == 'POST':
+        article.delete()
+        return redirect('articles:index')
+    else:
+        return redirect('articles:detail', article.pk)
+```
+
+detail.html
+
+```django
+  <form action="{% url 'articles:delete' article.pk %}" method="POST">
+    {% csrf_token %}
+    <button class="btn btn-danger">DELETE</button>
+  </form>
+```
+
+
+
+#### 5.5. Update page
+
