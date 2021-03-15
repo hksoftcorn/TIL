@@ -1,6 +1,6 @@
 [TOC]
 
-# Django
+# Django - Day2
 
 *The Web framework for perfectionists with deadlines*
 
@@ -332,8 +332,6 @@ detail.html
     <button class="btn btn-danger">DELETE</button>
   </form>
 ```
-
-
 
 #### 5.5. Update page
 
