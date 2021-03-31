@@ -1,412 +1,438 @@
-[TOC]
-
 # Django - Day6
 
 *The Web framework for perfectionists with deadlines*
 
-## 1. Article - Model Realtionship
+## 1. Authentication System
 
-### 1.1. Relationship fields
+### 1.1. Authentication & Authorization
 
-댓글 기능을 구현하려고 합니다. 각 게시글마다에 댓글을 달 수 있습니다.
+- Authentication : 인증, 자신이 누구라고 주장하는 사람의 신원을 확인하는 것
+- Authorization : 권한/허가, 가고 싶은 곳으로 가도록 혹은 원하는 정보를 얻도록 허용하는 과정
 
-##### 모델 간 관계를 나타내는 필드
 
-- Many to one (1:N) = Foreignkey()
-- Many to Many (M:N) = ManyToManyField()
-- One to One (1:1) = OneToOneField()
 
-##### Foreign Key (외래키)
 
-- RDBMS에서 한 테이블의 필드 중 다른 테이블의 행(row)을 식별할 수 있는 키
-- 참조하는 테이블에서 1개의 키값은, 참조되는 측 테이블의 행 값에 대응된다.
-- 하나의 테이블이 여러 개의 외래 키를 포함할 수 있다. 그리고 이러한 외래 키들은 각각 서로 다른 테이블을 참조할 수 있다.
-- 참조하는 테이블과 참조되는 테이블이 동일할 수도 있다. (재귀적 외래 키)
 
-##### Foreign Key (외래키) 특징
+## 2. Model Relationship
 
-- 키를 사용하여 부모 테이블의 유일한 값을 참조 (참조 무결성)
-- 외래 키의 값이 반드시 부모 테이블의 기본 키일 필요는 없지만 유일해야 함 (유일성)
-- 데이터 무결성 : 개체 무결성, 참조 무결성, 범위 무결성
+### 2.1. M : N 관계
 
-##### Foreignkey()
+##### 좋아요 & 팔로우하기
 
-- django에서 일대다를 표현하기 위한 model field
-- 2개의 필수 위치 인자가 필요 : 참조하는 모델 클래스, on_delete 옵션
-  - on_delete는 외래키가 참조하는 객체가 사라졌을 때 외래키를 가진 객체를 어떻게 처리할 지 정의
-  - 데이터 무결성을 위해서 매우 중요한 설정입니다.
-  - `CASCADE` / PROTECT / SET_NULL / SET_DEFAULT / SET() / DO_NOTHING / RESTRICT
-
-**articles - models.py**
-
-```python
-class Comment(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE)
-    content = models.CharField(max_length=200)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.content
-```
-
-- `python manage..py makemigrations`
-- `python manage..py migrate`
-
-- foreign key로 참조하는 클래스 article이 DB에 들어갈 때는 `article_id` 로 칼럼에 들어가게 됩니다.
-
-##### 1:N model manager
-
-```django
-comment = Comment()
-comment.content = '댓글1'
-# comment.save() # 댓글내용과 게시글 번호를 같이 입력해야 합니다.
-
-Artcile.objects.create(title='제목1', content='내용1')
-article = Article.objects.get(pk=1)
-comment.artilce = article
-comment.save()
-comment.article_id
-comment.pk # 고유키
-comment = Comment(content='댓글2', article=article)
-comment.save()
-```
-
-**articles - admin**
-
-```python
-from django.contrib import admin
-from .models import Article, Comment
-
-# Register your models here.
-admin.site.register(Article)
-admin.site.register(Comment)
-```
-
-##### 역참조 Article(1)이 Comment(N)을 참조
-
-- comment_set
-- django에서는 역참조시 {모델이름}_set 형식의 manager를 생성
-- article.comment_set.all()
-
-```python
-article = Article.objects.get(pk=1)
-comments = article.comment_set.all()
-comments
-```
-
-##### 역참조 related_name
-
-- model의 정의부터 새로 해야함
-
-  ```python
-  class Comment(models.Model):
-      article = models.ForeignKey(
-      	Article,
-          on_delete=models.CASCADE,
-          related_name='comments'
-      )
-  ```
-
-- 1:N 관계에서는 거의 사용하지 않지만, M:N 관계에서는 반드시 사용
-
-- article.comments.all()
-
-
-
-### 1.2. 댓글 구현
-
-##### forms.py
-
-```python
-class CommentForm(forms.ModelForm):
-
-    class Meta:
-        model = Comment
-        # fields = '__all__'
-        exclude = ('article',)
-```
-
-##### views.py
-
-```python
-@require_safe
-def detail(request, pk):
-    article = get_object_or_404(Article, pk=pk)
-    comment_form = CommentForm()
-    context = {
-        'article': article,
-        'comment_form': comment_form,
-    }
-    return render(request, 'articles/detail.html', context)
-```
-
-#### 1.2.1. Create
-
-##### urls.py
-
-```python
-path('<int:pk>/comments/', views.comments_create, name='comments_create'),
-```
-
-##### views.py
-
-```python
-from django.http import HttpResponse
-@require_POST
-def comments_create(request, pk):
-    if request.user.is_authenticated:
-        article = get_object_or_404(Article, pk=pk)
-        comment_form = CommentForm(request.POST)
-        if comment_form.is_valid():
-            comment = comment_form.save(commit=False)
-            comment.article = article
-            comment.save()
-            return redirect('articles:detail', article.pk)
-        context = {
-            'comment_form': comment_form,
-            'article': article,
-        }
-        return render(request, 'articles/detail.html', context)
-    else:
-        return redirect('accounts:login')
-    	# return HttpResponse(status=401)
-        
-```
-
-- comment 라는 인스턴스를 만들 때 commit=False 하여 DB에 아직 쿼리를 날리지 않습니다.
-- comment 인스턴스에 article 외래키를 추가하여 줍니다.
-- 마지막으로 .save() 하여 DB에 저장합니다.
-
-##### detail.html
-
-```django
-<form action="{% url 'articles:comments_create' article.pk %}" method="POST">
-    {% csrf_token %}
-    {{ comment_form }}
-    <input type="submit">
-</form>
-```
-
-#### 1.2.2. Read
-
-##### views.py
-
-```python
-@require_safe
-def detail(request, pk):
-    article = get_object_or_404(Article, pk=pk)
-    comment_form = CommentForm()
-    comments = article.comment_set.all()
-    context = {
-        'article': article,
-        'comment_form': comment_form,
-        'comments': comments,
-    }
-    return render(request, 'articles/detail.html', context)
-```
-
-##### detail.html
-
-```django
-<h4>댓글 목록</h4>
-  <ul>
-    {% for comment in comments %}
-      <li>
-          {{ comment }}
-      </li>
-    {% endfor %}
-  </ul>
-```
-
-#### 1.2.3. Delete
-
-##### urls.py
-
-```python
-path('<int:article_pk>/comments/<int:comment_pk>/delete/', views.comments_delete, name='comments_delete'),
-```
-
-##### views.py
-
-```python
-@require_POST
-def comments_delete(request, article_pk, comment_pk):
-    if request.user.is_authenticated:
-        comment = get_object_or_404(Comment, pk=comment_pk)
-        comment.delete()
-    return redirect('articles:detail', article_pk)
-```
-
-##### detail.html
-
-```django
-<h4>댓글 목록</h4>
-{{ comments|length }}개
-{{ article.comment_set.all|length }}개
-{{ comments.count }}개
-  <ul>
-    {% for comment in comments %}
-      <li>
-        {{ comment }}
-        <form action="{% url 'articles:comments_delete' article.pk comment.pk %}"
-              method="POST" class="d-inline">
-          {% csrf_token %}
-          <input type="submit" value="DELETE">
-        </form>
-      </li>
-    {% empty %}
-      <p>아직 댓글이 없네요..</p>
-    {% endfor %}
-  </ul>
-```
-
-
-
-## 2. USER - Customizing authentication
-
-### 2.1. Substituting a custom User model
-
-- 일부 프로젝트에서는 built-in User model이 제공하는 인증 요구사항이 적절하지 않을 수 있습니다.
-- django는 custom model을 참조하는 AUTH_USER_MODEL 설정을 제공하여 기본 user model을 재정의(override)할 수 있도록 함
-- 새 프로젝트를 시작하는 경우 기본 사용자 모델이 충분하더라도, 커스텀 유저 모델을 서정하는 것을 강력하게 권장합니다.
-- 커스텀 유저 모델은 기본 사용자 모델과 동일하게 작동하면서도 필요한 경우 나중에 맞춤 설정할 수 있기 때문
-- 단, 프로젝트의 모든 migrations 혹은 첫 migrate를 실행하기 전에 이 작업을 마쳐야 합니다.
-
-#### 2.1.1. AUTH_USER_MODEL
-
-- User를 나타내는데 사용하는 모델
-- 기본 값은 'auth.User'
-
-#### 2.1.2. AbstractBaseUser & AbstractUser
-
-model - Abstract Base User - Abstract User - User
-
-**AbstractBaseUser**
-
-- 기본적으로 password와 last_login만 제공
-- 자유도가 높지만 필요한 다른 필드는 모두 직접 작성해야 함
-
-**AbstractUser**
-
-- 관리자 권한과 함께 완전한 기능을 갖춘 사용자 모델을 구현하는 기본 클래스
-
-> Abstract base classes
+> 좋아요 : Article - User
 >
-> - 몇 가지 공통 정보를 여러 다른 모델에 넣을 때 사용하는 클래스입니다.
-> - 데이터베이스 테이블을 만드는 데 사용되지 않으며, 대신 다른 모델의 기본 클래스로 사용되는 경우 해당 필드가 하위 클래스의 필드에 추가 됨
+> 팔로우하기 : User - User
 
-##### models.py
+##### i.g. 병원 진료 시스템 
 
-```python
-from django.db import models
-from django.contrib.auth.models import AbstractUser
+- 내원하는 환자 / 의사간의 예약 시스템을 구축
+- 환자와 의사 관계 - N : M
+- class Reservation 중개 모델을 생성합니다.
+- {Model}_set.all()
+- `'through = reservation'`
+- 다대 다 테이블에서 하나의 테이블에만 FK를 넣게 됩니다 
+  - 환자 : through = reservation
+  - 의사 : related_name = 'patients' (역참조)
+  - source 모델과 target 모델을 정해줍니다.
+  - source 모델은 through / tartget 모델은 related_name을 설정합니다.
 
-# Create your models here.
-class User(AbstractUser):
-    pass
+
+
+### 2.2. 구현하기
+
+#### 1) M:N 역참조 (_set)
+
+```
+pip install django django-extentions ipython
+django-admin startproject crud .
+python manage.py startapp hospitals
 ```
 
 ##### settings.py
 
 ```python
-AUTH_USER_MODEL = 'accounts.User'
+INSTALLED_APPS = [
+    'hospitals',
+    'django_extensions',
+]
+```
+
+##### models.py
+
+```python
+from django.db import models
+
+class Doctor(models.Model):
+    name = models.TextField()
+    
+    def __str__(self):
+        return f'{self.pk}번 의사 {self.name}'
+    
+    
+class Patient(models.Model):
+    name = models.TextField()
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)  # through=''
+    
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+```
+
+```python
+python manage.py makemigrations
+python manage.py migrate
+python manage.py shell_plus
+```
+
+##### shell_plus
+
+```python
+doctor1 = Doctor.objects.create(name='justin')
+doctor2 = Doctor.objects.create(name='eric')
+patient1 = Doctor.objects.create(name='tony', doctor=doctor1)
+patient2 = Doctor.objects.create(name='harry', doctor=doctor2)
+```
+
+```python
+# 1번 환자는 2번 의사로 바꾸고 싶다.
+patient3 = Doctor.objects.create(name='tony', doctor=doctor2)
+# 2번 환자는 1, 2번 의사와 함께 진료받고 싶다.
+patient4 = Doctor.objects.create(name='harry', doctor=doctor1, doctor=doctor2)
+```
+
+> 1:N 의 한계
+>
+> - 기존 환자가 다른 의사로 예약을 하려고 하면 새로운 객체를 만들어야 한다.
+> - 한 명의 환자가 두 명 이상의 의사에게 예약을 하려고 하면 레코드에 두 개 이상의 데이터가 들어간다(오류)
+
+##### models.py
+
+```python
+from django.db import models
+
+class Doctor(models.Model):
+    name = models.TextField()
+    
+    def __str__(self):
+        return f'{self.pk}번 의사 {self.name}'
+    
+    
+class Patient(models.Model):
+    name = models.TextField()
+    
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+    
+    
+class Reservation(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{doctor.pk}번 의사와 {patient.pk}번 환자'
+```
+
+##### shell_plus
+
+```python
+doctor1 = Doctor.objects.create(name='justin')
+patient1 = Doctor.objects.create(name='tony')
+Reservation.objects.create(doctor=doctor1, patient=patient1)
+```
+
+```python
+doctor1.reservation_set.all()
+patient1.reservation_set.all()
+```
+
+```python
+patient2 = Doctor.objects.create(name='harry', doctor=doctor2)
+Reservation.objects.create(doctor=doctor1, patient=patient2)
+doctor1.reservation_set.all()
+for reservation in doctor1.reservation_set.all():
+    print(reservation.patient.name)
 ```
 
 
 
-### 2.2. 초기화 및 재정의
+#### 2) ManyToMany Field
 
-#### 2.2.1. Steps
-
-1. 0001_initial.py 0002_comment.py 등 설계도 파일 지우기
-
-2. DB 지우기
-
-3. 처음부터 makemigrations 하기
-
-> - DB에서 확인 : auth.auth_user 에서 accounts_user 테이블로 바뀌게 됩니다.
-
-#### 2.2.2. accounts_user로 바꾸기
-
-기본 참조 모델을 바꾸어줍니다. forms.py로 들어가 `UserCreationForm` 과 `UserChangeForm` 부분을 커스텀하게 됩니다. get_user_model()을 통해 활성화되어 있는 모델을 리턴합니다.
-
-##### forms.py
+##### models.py
 
 ```python
-from django.contrib.auth.forms import UserCreationeForm
+from django.db import models
 
-class CustomUserCreationForm(UserCreationeForm):
+class Doctor(models.Model):
+    name = models.TextField()
+    
+    def __str__(self):
+        return f'{self.pk}번 의사 {self.name}'
+    
+    
+class Patient(models.Model):
+    name = models.TextField()
+    doctors = models.ManyToManyField(Doctor)
+    
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+```
 
-    class Meta(UserCreationForm.Meta):
-        model = get_user_model()
-        fields = UserCreationeForm.Meta.field + ('email')
+> DB를 살펴보면 만들어진 테이블의 개수가 3개 입니다. 즉 중개 테이블이 자동으로 만들어지는 것을 확인할 수 있습니다.
+>
+> - hospitals_doctor
+> - hospitals_patient
+> - hospitals_patient_doctors (중개 모델)
+
+```python
+doctor1 = Doctor.objects.create(name='justin')
+doctor2 = Doctor.objects.create(name='eric')
+patient1 = Doctor.objects.create(name='tony')
+patient2 = Doctor.objects.create(name='harry')
+```
+
+```python
+patient1.doctors.add(doctor1)
+
+patient1.doctors.all()
+doctor1.patient_set.all()
+
+doctor1.patient_set.add(patient2)
+patient2.doctors.all()
+```
+
+```python
+doctor1.patient_set.remove(patient1)
+patient2.doctors.remove(doctor1)
+```
+
+##### 역참조 시 이름 바꾸기 (related_name)
+
+```python
+class Patient(models.Model):
+    name = models.TextField()
+    doctors = models.ManyToManyField(Doctor, related_name='patients')
+    
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+```
+
+```python
+patient1.doctors.all()
+doctor1.patients.all()
+```
+
+
+
+#### 3) Related manager
+
+1:N 또는 M:N 관련 컨텍스트에서 사용되는 매니저입니다. 같은 이름의 메서드여도 각 관계에 따라 다르게 작동할 수 있습니다. 또한 1:N에서 Target 모델 객체만 사용이 가능합니다. M:N은 Tartget / Source 모델 둘 다 사용이 가능합니다. `add`, `create`, `remove`, `clear`, `set`
+
+> **Symmetrical**
+>
+> ```python
+> class Person(models.Model):
+>     friends = models.ManyToManyField('self')
+> ```
+>
+> - 위처럼 동일한 모델을 가리키는 정의의 경우 Person 클래스에 person_set 매니저를 추가 하지 않음
+> - 대신 대칭적(Symmetrical)이라고 간주하며, source 인스턴스가 target 인스턴스를 참조하면 target 인스턴스도 source 인스턴스를 참조하게 됩니다.
+> - self 와의 M:N 관계에서 대칭을 원하지 않는 경우 Symmetrical를 False로 설정합니다.
+
+> **Through**
+>
+> - django는 다대다 관계를 관리하는 중개 테이블을 자동으로 생성함
+> - 하지만, 중개 테이블을 직접 지젇ㅇ하려면 through 옵션을 사용하여 중개 테이블을 나타내는 Django 모델을 지정할 수 있음
+> - 일반적으로 추가 데이터를 다대다 관계와 연결하려는 경우에 사용합니다.
+
+> **add()**
+>
+> - 지정된 객체를 관련 객체 집합에 추가
+> - 이미 존재하는 관계에 다시 사용하면 관계가 복제되지 않음
+>
+> **remove()**
+>
+> - 관련 객체 집합에서 지정된 모델 객체를 제거
+
+
+
+## 3. 좋아요&팔로우 기능
+
+### 3.1. 좋아요
+
+##### models.py
+
+```python
+# Create your models here.
+class Article(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_articles')
+    ...
+    
+```
+
+좋아요를 누른 유저를 가쟈옵니다.
+
+> makemigratoins 오류
+>
+> - 1 : N 관계에서 user.article_set 기능(유저가 작성한 모든 게시글 조회)과 M : N 관계에서 user.article_set (좋아요를 누른 모든 게시글 조회) 기능이 겹치게 됩니다. 
+> - 따라서 related_name='like_articles' 을 지정하여 역참조하는 직관적인 이름으로 바뀌어 줍니다.
+
+##### views.py
+
+```python
+@require_POST
+def likes(request, article_pk):
+    if request.user.is_authenticated:
+        article = get_object_or_404(Article, pk=pk)
+
+        if request.user in article.like_users.all():
+            # 좋아요 취소
+            article.like_users.remove(request.user)
+        else:
+            # 좋아요 누름
+            article.like_users.add(request.user)
+        return redirect('articles:index')
+    return redirect('accounts:login')
+```
+
+##### index.html
+
+```django
+<div>
+    <form action="{% url 'articles:likes' article.pk %}" method="POST">
+        {% csrf_token %}
+        {% if request.user in article.like_users.all %}
+        	<button>좋아요 취소</button>
+        {% else %}
+	        <button>좋아요</button>
+        {% endif %}
+    </form>
+</div>
+<p>{{ article.like_users.all|length }}명이 이 글을 좋아합니다.</p>
+<a href="{% url 'articles:detail' article.pk %}">[DETAIL]</a>
+<hr>
 ```
 
 ##### views.py
 
 ```python
+@require_POST
+def likes(request, article_pk):
+    ...
+        if article.like_users.filter(pk=request.user.pk).exists():
+        # if request.user in article.like_users.all():
+            # 좋아요 취소
+            article.like_users.remove(request.user)
 
-@require_http_methods(['GET', 'POST'])
-def signup(request):
-    if request.user.is_authenticated:
-        return redirect('articles:index')
-
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            auth_login(request, user)
-            return redirect('articles:index')
-    else:
-        form = CustomUserCreationForm()
-    context = {
-        'form': form,
-    }
-    return render(request, 'accounts/signup.html', context)
+	...
 ```
 
-#### 2.2.3. 모델클래스 재 정의
-
-##### models.py
-
-```python
-user = models.ForeignKey(settings.AuTH_USER_MODEL, on_delete=models.CASCADE)
-```
-
-> **유저 모델 참조하기**
+> *queryset is lazy*
 >
-> - `settings.AUTH_USER_MODEL` : 문자열 'accounts.User' 반환
->   - 유저 모델에 대한 외래 키 또는 M:N 관계를 정의할 때 사용
->   - 즉, models.py에서 유저 모델을 참조할 때 사용
-> - `get_user_model()` : User 객체 반환
->   - django는 User 모델을 직접 참조하는 대신 get_user_model()을 사용하여 사용자 모델을 참조하라고 권장
->   - 현재 활성화(active)된 유저 모델 (지정된 커스텀 유저 모델, 그렇지 않은 경우 User)을 반환
->   - 즉, models.py가 아닌 다른 모든 곳에서 유저 모델을 참조할 때 사용
+> .exists() : 쿼리를 날리는 데 최적화된 함수를 고민해 봅니다. 
+>
+> 실제 쿼리셋을 만드는 작업에는 DB가 관여하지 않습니다. 아직 요청을 보내지 않는다는 것입니다. 쿼리셋을 평가하는 순간 쿼리를 DB로 날립니다. 또한 쿼리셋 캐시를 만들게 됩니다. 반복/출력/bool 등을 진행할 때 쿼리셋을 평가하게 됩니다. 평가 이후에 결과를 쿼리셋의 내장 캐시에 저장됩니다. 다음 번 쿼리셋을 만들 때 캐시에 저장된 데이터를 재사용합니다.
 
-만들어지는 테이블의 FK 칼럼이름은 `user_id`가 됩니다.
 
-##### forms.py
+
+### 3.2. 프로필 보기 기능
+
+##### accounts - urls.py
 
 ```python
-from django import forms
-from .models import Article, Comment
-
-
-class ArticleForm(forms.ModelForm):
-
-    class Meta:
-        model = Article
-        fields = ('title', 'content',)
-
-        
-class CommentForm(forms.ModelForm):
-
-    class Meta:
-        model = Comment
-        # fields = '__all__'
-        exclude = ('article',)
+urlpatterns = [
+    ...
+	path('<str:username>/', views.profile, name='profile'),
+]
 ```
+
+##### views.py
+
+```python
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
+
+def profile(request, username):
+    person = get_object_or_404(get_user_model(), username=username)
+    context = {
+        'person': person,
+    }
+    return render(request, 'accounts/profile.html', context)
+```
+
+##### base.html
+
+```django
+<a href="{% url 'accounts:profile' request.user.username %}">[내 프로필]</a>
+```
+
+##### index.html
+
+```django
+<b>작성자 : <a href="{% url 'accounts:profile' article.user.username %}">{{ article.user }}</a></b>
+```
+
+
+
+### 3.3. 팔로우 기능
+
+##### accounts - models.py
+
+```python
+class User(AbstractUser):
+    followings = models.ManyToManyField('self', symmetrical=False, related_name='followers')    
+```
+
+##### urls.py
+
+```python
+path('<int:user_pk>/follow/', views.follow, name='follow'),
+```
+
+##### views.py
+
+```python
+def follow(request, user_pk):
+    if request.user.is_authenticated:
+        # 팔로우 받는 사람
+        person = get_object_or_404(get_user_model(), pk=user_pk)
+
+        if person != request.user:
+            if person.followers.filter(pk=request.user.pk):
+                # 팔로우 끊음
+                person.followers.remove(request.user)
+            else:
+                # 팔로우 신청
+                person.followers.add(request.user)
+        return redirect('accounts:profile', person.username)
+    return redirect('accounts:login')
+```
+
+##### profile.html
+
+```django
+  {% with followings=person.followings.all followers=person.followers.all %}
+    <div>
+      <div>
+        팔로잉 : {{ followings|length }} / 팔로워 : {{ followers|length }}
+      </div>
+      {% if request.user != person %}
+        <div>
+          <form action="{% url 'accounts:follow' person.pk %}" method="POST">
+            {% csrf_token %}
+            {% if request.user in followers %}
+              <button>언팔로우</button>
+            {% else %}
+              <button>팔로우</button>
+            {% endif %}
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  {% endwith %}
+```
+
+
 
 
 
