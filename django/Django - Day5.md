@@ -284,8 +284,8 @@ def signup(request):
 
 ### 3. 로그인 사용자에 대한 접근권한
 
-- is_authenticated 속성
-- login_required 데코레이터
+- is_authenticated attribute
+- login_required decorator
 - Settings.py : Login_URL = 'accounts/login'
 - `next` parameter
 
