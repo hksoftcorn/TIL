@@ -185,8 +185,8 @@ class Patient(models.Model):
 ```python
 doctor1 = Doctor.objects.create(name='justin')
 doctor2 = Doctor.objects.create(name='eric')
-patient1 = Doctor.objects.create(name='tony')
-patient2 = Doctor.objects.create(name='harry')
+patient1 = Patient.objects.create(name='tony')
+patient2 = Patient.objects.create(name='harry')
 ```
 
 ```python
@@ -240,7 +240,7 @@ doctor1.patients.all()
 > **Through**
 >
 > - django는 다대다 관계를 관리하는 중개 테이블을 자동으로 생성함
-> - 하지만, 중개 테이블을 직접 지젇ㅇ하려면 through 옵션을 사용하여 중개 테이블을 나타내는 Django 모델을 지정할 수 있음
+> - 하지만, 중개 테이블을 직접 지정하려면 through 옵션을 사용하여 중개 테이블을 나타내는 Django 모델을 지정할 수 있음
 > - 일반적으로 추가 데이터를 다대다 관계와 연결하려는 경우에 사용합니다.
 
 > **add()**
@@ -269,7 +269,7 @@ class Article(models.Model):
     
 ```
 
-좋아요를 누른 유저를 가쟈옵니다.
+좋아요를 누른 유저를 가져옵니다.
 
 > makemigratoins 오류
 >

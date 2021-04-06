@@ -472,6 +472,8 @@ User.objects.values('country').annotate(Count('country'))
 User.objects.values('country').annotate(num_countries=Count('country'))
 ```
 
+
+
 ```sql
 -- sql
 
@@ -491,7 +493,7 @@ GROUP BY country;
 User.objects.values('country').annotate(Count('country')).annotate(Avg('balance'))
 
 # 2
-User.objects.values('country').annotate(Count('country'), Avg('b alance'))
+User.objects.values('country').annotate(Count('country'), Avg('balance'))
 ```
 
 ```sql
@@ -518,5 +520,8 @@ GROUP BY country;
    	<p>이 게시글에 작성된 댓글은 총 {{ article.total_comment }}개</p>
        <p>pub_date : {{ article.pub_date }}</p>
    {% endfor %}
+   ```
 ```
    
+
+```

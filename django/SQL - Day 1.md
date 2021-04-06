@@ -265,7 +265,7 @@ SELECT first_name FROM user_count WHERE age=30;
 -- print(User.objects.filter(age=30).values('first_name').query) 쿼리를 확인합니다.
 
 
-User.objects.filter(agee__gte=30).count()
+User.objects.filter(age__gte=30).count()
 SELECT COUNT(*) FROM users_user WHERE age >= 30;
 
 
