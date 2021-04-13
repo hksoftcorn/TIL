@@ -2,8 +2,6 @@
 
 ### 복습
 
-
-
 ##### 서브트리
 
 ```python
@@ -99,6 +97,41 @@ for tc in range(1, T+1):
                 return data
     
 	print(f'#{tc} {int(inorder(1))}')   
+```
+
+##### 공통조상
+
+class Node, Tree 구현하여 Tree => Node 들의 합으로 구성합니다.
+
+```python
+# tree : 1개
+# node : 13개
+# Node : pk, parent, child1, child2
+# Tree : Node * n
+""" i.g.
+Node 
+본인 | 	1	   |
+p	| 	None	|
+c	| c1  |  c2 |
+"""
+
+class Node:
+    def __init__(self, pk, parent=None, child=None):
+        self.pk =pk
+        self.parent = parent
+        self.child1 = child1
+        self.child2 = None
+        
+    def add_child(self, pk):
+        pass
+    
+    def add_child(self, pk):
+        pass
+
+    
+class Tree:
+    def __init__(self, info):
+           
 ```
 
 
