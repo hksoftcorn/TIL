@@ -212,6 +212,107 @@
 - 재귀 호출을 통한 순열 생성
 - 바이너리 카운팅을 통한 순열 생성
 
+##### 순열
+
+```python
+# 1. for문
+arr = ['A', 'B', 'C', 'D']
+N = len(arr)
+
+for i in range(0, N):
+    arr[0], arr[i] = arr[i], arr[0]
+    
+    for j in range(1, N):
+        arr[1], arr[i] = arr[i], arr[1]
+
+        for k in range(2, N):
+        	arr[2], arr[k] = arr[k], arr[2]
+		    print(arr) # 바꾼 상태를 출력하고
+	        arr[2], arr[k] = arr[k], arr[2]
+            
+        arr[1], arr[i] = arr[i], arr[1]
+	    
+    arr[0], arr[i] = arr[i], arr[0] # 원상 복귀!
+
+    
+# 2. 재귀호출
+def perm(k):		# k: 함수 호출의 높이
+    if k == N:
+        print(arr)
+    else:
+        for i in range(k, N):
+            arr[k], arr[i] = arr[i], arr[k]
+            perm(k + 1)
+            arr[k], arr[i] = arr[i], arr[k]
+
+perm(0)
+```
+
+- 초기상태에서 상태공간 트리를 만들게 됩니다.
+- 첫 번째 자리에 들어갈 수 있는 인자로 'A', 'B', 'C', 'D' 4가지가 있습니다.
+  - idx요소로 자리를 교환한다고 표현하면 (0, 0) (0, 1) (0, 2) (0, 3) 이 됩니다.
+  - 자리를 바꾼 값들이 그대로 저장되어 원복형태를 해치게 됩니다.
+- A 다음에 두 번째 자리에 들어갈 수 있는 인자로 'B', 'C', 'D' 3가지가 있습니다.
+  - (1, 1) (1, 2) (1, 3)
+
+##### 최적 경로
+
+- 문제 설명 : 출발지에서 출발하여 가장 짧은 경로로 모든 노드를 거치고 도착지에 도착하는 경로를 찾아라
+- 이론 : 최적화 문제 + 완전 그래프
+  - 조건을 만족하는 해(후보 해) 중에서 가장 최소가 되는 값을 찾으면 됩니다.
+  - 최적화 문제는 우선적으로 `완전 검색`을 해야 합니다.
+  - *TSP* (*Traveling Salesman Problem*) 이란 문자 그대로, 물건을 판매하기 위해 여행하는 세일즈맨의 문제입니다.
+  - Force가 많이 필요합니다 → CPU 사용률이 높습니다. 
+    - P : 쉬운 문제, big O 표현식이 다항식에 들어오는 문제라면 (컴퓨터에게) 쉬운 문제라고 분류합니다.
+    - ~P : 어려운 문제, 지수 혹은 팩토리얼 계산식이 들어가면서 수많은 연산을 요구합니다.
+- 컨셉 : 
+
+```python
+import sys; sys.stdin = open('05.txt', 'r')
+
+
+def dist(arr):
+    cnt = 0
+    for i in range(N + 1, 0, -1):
+        x = abs(arr[i][0] - arr[i-1][0])
+        y = abs(arr[i][1] - arr[i-1][1])
+        cnt += x + y
+    return cnt
+
+def perm(k):
+    global min_dist
+    if k == N + 1:
+        tmp = dist(pos)
+        if min_dist > tmp:
+            min_dist = tmp
+
+    else:
+        for i in range(k, N + 1):
+            pos[k], pos[i] = pos[i], pos[k]
+            perm(k + 1)
+            pos[k], pos[i] = pos[i], pos[k]
+
+
+
+T = int(input())
+for tc in range(1, T+1):
+    N = int(input())
+    G = [0] * (N + 2)
+    visited = [0] * (N + 2)
+    arr = list(map(int, input().split()))
+
+    pos = [[arr[0], arr[1]]]
+    for i in range(4, (N + 2) * 2, 2):
+        pos.append([arr[i], arr[i + 1]])
+    pos.append([arr[2], arr[3]])
+    min_dist = 0xffffff
+
+    perm(1)
+    print('#{} {}'.format(tc, min_dist))
+
+
+```
+
 ```python
 # 단순한 순열 생성 {1, 2, 3}
 for i1 in range(1, 4):
@@ -248,6 +349,10 @@ for i in range(0, (1 << n)): # 1<<n : 부분집합의 개수
             print('%d' %arr[j], end=' ')
     print()
 ```
+
+
+
+
 
 ### 1.4. 조합 (Combination)
 
