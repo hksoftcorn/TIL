@@ -1,208 +1,185 @@
-# TREE_02
+[TOC]
 
-> 2021.04.06
+# APS - Tree
 
-- **문제 사이트** : 
-  - [ ] 백준
-  - [ ] Programmers
-  - [x] SWEA
-    - [x] 1232_사칙연산
-    - [x] 5174_subtree
-    - [x] 5176_이진탐색
-    - [x] 5177_이진힙
-    - [x] 5178_노드의 합
-- **사용한 개념/알고리즘**
-  - 트리 / 이진트리
-  - 수식트리
-- 이진 탐색 트리
-  - 이진 힙
-- **어려웠던 점**
-  - 트리 자체의 개념이 어려웠다.
-  - 재귀로 표현하는 방법은 더더욱 어려웠다.
-  - 이게 어떻게 되지? 하는게 많기는 했는데,, 복습을 해야겠다.
-- **뿌듯한 점 & 개선할 점**
-  - 새벽 1시까지,, 혼자만의 힘으로 풀었다.
-  - 문제를 잘 읽고, 그림을 먼저 그려보자.
-  - 코드 리뷰를 생활화 합시다.
-  - 동기들의 코드를 보면서 좋은 코드는 배우자.
+> 2021.04.05.
 
-```python
-# 1232_사칙연산
-T = 10
-for tc in range(1, T+1):
-    V = int(input())
+## 1. 트리
 
-    # 2차원 배열로 입력을 받아줍니다.
-    # 0 : 왼쪽 자식
-    # 1 : 오른쪽 자식
-    # 2 : 노드 데이터
-    tree = [[0 for _ in range(3)] for _ in range(V+1)]
-    for _ in range(V):
-        input_data = input().split()
-        node_no = int(input_data[0])
-        node_data = input_data[1]
-
-        tree[node_no][2] = node_data
-        ans = []
-
-        if len(input_data) == 4:
-            tree[node_no][0] = int(input_data[2])
-            tree[node_no][1] = int(input_data[3])
-        elif len(input_data) == 3:
-            tree[node_no][0] = int(input_data[2])
-
-    # 연산자를 구현합니다.
-    def calc(a, b, x):
-        if x == '+':
-            return b + a
-        elif x == '-':
-            return b - a
-        elif x == '*':
-            return b * a
-        elif x == '/':
-            return b / a
-
-    # 스택으로 풀어봅니다.
-    stack = []
-    def solution(node_no):
-        # 후위순회로 풀어야하나?? ㅇㅋ
-        if tree[node_no][2]:
-            solution(tree[node_no][0])
-            solution(tree[node_no][1])
-
-            if tree[node_no][2].isnumeric():
-                stack.append(tree[node_no][2])
-            else:
-                a = stack.pop()
-                b = stack.pop()
-                # 정수형이 아닌 실수형으로 지정해줍니다.
-                tmp = calc(float(a), float(b), tree[node_no][2])
-                stack.append(tmp)
+- 그래프의 한 종류
+- 루트 노드 
+- 비선형, 계층 구조
 
 
-    solution(1)
-    print('#{} {}'.format(tc, int(*stack)))
-```
+
+### 이진트리
+
+- 모든 노드들이 2개의 서브트리를 갖는 특별한 형태의 트리
+- 각 노드가 자식 노드를 최대한 2개 까지만 가질 수 있는 트리
+- 포화 이진 트리 (Full Binary Tree) : 모든 레벨에 노드가 포화상태로 차 있는 이진 트리
+- 완전 이진 트리 (Complete Binary Tree) : 높이가 h이고 노드 수가 n개일 때, 포화 이진 트리의 노드 번호 1번부터 n번까지 빈 자리가 없는 이진 트리
+
+- 편향 이진 트리 (Skewed Binary Tree) : 높이 h에 대한 최소 개수의 노드를 가지면서 한쪽 방향의 자식 노드만을 가진 이진 트리
+
+
+
+### 순회
+
+순회(traversal)란 트리의 각 노드를 중복되지 않게 전부 방문 하는 것을 말하는데 트리는 비 선형 구조이기 때문에 선형구조에서와 같이 선후 연결 관계를 알 수 없다.
+
+- 전위 순회 (pre-order) : VLR
+- 중위 순회 (in-order) : LVR
+- 후위 순회 (post-order) : LRV
+
+> 배열을 이용한 이진 트리의 표현
+>
+> - 이진 트리에 각 노드 번호를 다음과 같이 부여
+> - 루트의 번호를 1로 함
+> - 레벨 n에 있는 노드에 대하여 왼쪽부터 오른쪽으로 2^n 부터 2^(n+1) - 1 까지 번호를 차례로 부여
+
+
+
+### 이진트리의 표현 : 1. 배열
+
+배열을 이용하여 이진 트리를 표현할 수 있습니다.
+
+- 노드 번호가 i인 노드의 부모 노드 번호? : [ i/2 ] floor
+- 노드 번호가 i인 노드의 왼쪽 자식 노드 번호?  : 2 * i
+- 노드 번호가 i인 노드의 오른쪽 자식 노드 번호? : 2 * i + 1
+- 레벨 n의 노드 번호 시작 번호는? : 2^n
+- 높이가 h인 이진 트리를 위한 배열의 크기는? : 2^(h+1) - 1
+
+>  배열을 이용한 이진 트리의 표현의 단점은 배열 원소에 대한 메모리 공간 낭비 발생
+
+
+
+### 이진트리의 표현 : 2. 연결 리스트
+
+이진 트리의 모든 노드는 최대 2개의 자식 노드를 가지므로 일정한 구조의 단순 연결 리스트 노드를 사용하여 구현
+
+> left - [ data ] - right
+
+
+
+#### 연습문제 1
+
+첫 줄에는 트리의 정점의 총 수 V가 주어진다. 그 다음 줄에는 V-1개 간선이 나열된다. 간선은 그것을 이루는 두 정점으로 표기된다. 간선은 항상 "부모 자식" 순서로 표기된다.
+
+> 1. 부모 노드를 인덱스로 자식 번호를 저장
+>    - 2개의 1차원으로 표현가능
+> 2. 자식 노드를 인덱스로 부모 번호를 저장
+>    - 1차원으로 표현가능
+>    - Root는 부모가 없는 노드 즉 value=0
+>    - 조상 찾기
+
+#### 연습문제 2
+
+다음 이진 트리 표현에 대하여 전위 순회하여 정점의 번호를 출력하시오. V : 13
 
 ```python
-# 5174_subtree
-T = int(input())
-
-for tc in range(1, T + 1):
-    E, N = map(int, input().split())
-    V = E + 1
-    edge = list(map(int, input().split())) # p, c
-
-    left = [0] * (V + 1)
-    right = [0] * (V + 1)
-
-    pa = [0] * (V + 1)
-
-    for i in range(E):
-        n1, n2 = edge[i * 2], edge[i * 2 + 1]  # n1 부모노드, n2 자식노드
-        if left[n1] == 0:
-            left[n1] = n2
-        else:
-            right[n1] = n2
-        pa[n2] = n1
-
-    cnt = 0
-
-    def solution(n):
-        global cnt
-        if n == 0:
-            return
-        else:
-            cnt += 1
-            solution(left[n])
-            solution(right[n])
+'''
+5 4 
+2 1 2 4 4 3 4 5
+'''
+def preorder(n):
+    if n>0:
+        print(n, end=" ")
+        preorder(left[n])
+        preorder(right[n])
 
 
-    solution(N)
-    print('#{} {}'.format(tc, cnt))
-```
+V, E = map(int, input().split())
+edge = list(map(int, input().split()))
 
-```python
-# 5176_이진탐색
-T = int(input())
+left = [0] * (V+1)
+right = [0] * (V+1)
 
-def inorder(node_no):
-    global cnt
-    if node_no > 0:
-        # 왼쪽 탐색
-        inorder(tree[node_no][0])
-        cnt += 1
-        tree[node_no][2] = cnt
-        # 오른쪽 탐색
-        inorder(tree[node_no][1])
-
-
-for tc in range(1, T+1):
-    V = int(input())
-    tree = [[0] * 3 for _ in range(V + 1)]
-
-    for node_no in range(1, V+1):
-        # node_no * 2 가 마지막 노드번호(V)보다 작다 == 왼쪽 자식이 있다.
-        if node_no * 2 <= V:
-            tree[node_no][0] = 2 * node_no
-            # node_no * 2 + 1 이 마지막 노드번호(V)보다 작다 == 오른쪽 자식이 있다.
-            if node_no * 2 + 1 <= V:
-                tree[node_no][1] = 2 * node_no + 1
-    cnt = 0
-    inorder(1)
-    
-    print('#{} {} {}'.format(tc, tree[1][2], tree[V//2][2]))
-```
-
-```python
-# 5177_이진힙
-def solution(node_no):
-    global tree
-    if node_no == 1:
-        return
-    if tree[node_no // 2][2] > tree[node_no][2]:
-        tree[node_no // 2][2], tree[node_no][2] = tree[node_no][2], tree[node_no // 2][2]
-        solution(node_no // 2)
-
-
-T = int(input())
-
-for tc in range(1, T + 1):
-    V = int(input())
-    tree = [[0] * 3 for _ in range(V + 1)]
-    input_data = list(map(int, input().split()))  # 서로 다른 자연수
-
-    for node_no, node_data in enumerate(input_data, start=1):
-        tree[node_no][2] = node_data  # 현재 들어온 데이터
-        solution(node_no)
-
-    ans = 0
-    while V > 1:
-        V //= 2
-        ans += tree[V][2]
-
-    print('#{} {}'.format(tc, ans))
-```
-
-```python
-# 5178_노드의 합
-T = int(input())
-
-for tc in range(1, T+1):
-    N, M, L = map(int, input().split())
-    ans = 0
-    if L == 1:
-        for _ in range(M):
-            node_no, node_data = map(int, input().split())
-            ans += node_data
+pa = [0] * (V+1)
+for i in range(E):
+    n1, n2 = edge[i*2], edge[i*2+1] # n1 부모노드, n2 자식노드
+    if left[n1] == 0:
+        left[n1] = n2
     else:
-        for _ in range(M):
-            node_no, node_data = map(int, input().split())
-            while node_no >= L:
-                if node_no == L:
-                    ans += node_data
-                    break
-                node_no //= 2
-
-    print('#{} {}'.format(tc, ans))
+        right[n1] = n2
+    pa[n2] = n1
+    
+root = 0
+for i in range(1, V+1):
+    if pa[i] == 0:
+        root = i
+        break
+    
 ```
+
+
+
+### 수식 트리
+
+수식을 표현하는 이진 트리입니다. 수식 이진 트리(Expression Bunary Tree)라고 부르기도 합니다. 연산자는 루트 노드이거나 가지 노드입니다. 피연산자는 모두 잎 노드입니다.
+
+
+
+## 2. 이진 탐색 트리
+
+- 탐색작업을 효율적으로 하기 위한 자료구조
+- 모든 원소는 서로 다른 유일한 키를 갖는다.
+- 왼쪽 서브트리 < 루트 노드 < 오른쪽 서브트리
+- 왼쪽 서브트리와 오른쪽 서브트리도 이진 탐색 트리다.
+- 중위 순회하면 오름차순으로 정렬된 값을 얻을 수 있다.
+- 탐색, 삽입, 삭제 시간은 트리의 높이 만큼 시간이 걸립니다. BST의 깊이.
+
+
+
+#### 탐색연산
+
+> - 루트에서 시작한다
+> - 탐색할 키 값 x를 루트 노드의 값과 비교한다.
+>   - == : 탐색연산 성공
+>   - x< 노드: 왼쪽
+>   - x>노드: 오른쪽
+
+
+
+#### 삽입 연산
+
+> - 먼저 탐색 연산을 수행
+>   - 삽입할 원소와 같은 원소가 트리에 있으면 삽입할 수 없으므로, 같은 원소가 트리에 있는 지 먼저 탐색
+>   - 탐색에서 탐색 실패가 결정되는 위치가 삽입 위치가 된다.
+> - 탐색 실패한 위치에 원소를 삽입한다.
+
+
+
+#### 삭제 연산
+
+> - 리프 노드의 삭제 : 그대로 진행됩니다.
+> - 부모 노드의 삭제 : 아래의 서브트리를 한 단계 위로 당겨옵니다.
+> - 루트 노드의 삭제 : 루트 노드보다 크면서 가장 가까운 노드, 오른쪽에서 왼쪽 자식이 없는 최초의 노드
+>   - 최초의 노드를 발견하면 노드를 루트에 올리고
+>   - 자식 노드를 부모노드에 붙이게 됩니다.
+
+
+
+## 3. 힙 Heap
+
+완전 이진 트리에 있는 노드 중에서 키값이 가장 큰 노드나 키값이 가장 작은 노드를 찾기 위해서 만든 자료구조
+
+##### 최대 힙
+
+- 키값이 가장 큰 노드를 찾기 위한 **완전 이진 트리**
+- {부모노드의 키값 > 자식노드의 키값
+- 루트 노드 : 키값이 가장 큰 노드
+
+##### 최소 힙
+
+- 키값이 가장 작은 노드를 찾기 위한 **완전 이진 트리**
+- { 부모노드의 키값 < 자식노드의 키값 }
+- 루트 노드 : 키값이 가장 작은 노드
+
+> 삽입
+>
+> 삭제
+
+##### 우선순위 큐
+
+- 최소 힙으로서, 가장 작은 키값을 가진 노드가 항상 루트에 위치한다.
+- 힙의 키를 우선순위로 활용하여 우선순위 큐를 구현할 수 있다.
