@@ -64,6 +64,17 @@ class DisjointSet:
             self.parents[node] = self.find_root(parent)
         return self.parents[node]
     
+    def union(self, node_v, node_u):
+        root1 = self.find_root(node_v)
+        root2 = self.find_root(node_u)
+        
+        if self.ranks[root1] >= self.ranks[root2]:
+            self.parents[root2] = root1
+            if self.ranks[root1] == self.ranks[root2]:
+                self.ranks[root1] += 1
+        else:
+            self.parents[root1] = root2
+        
 
 
 T = int(input())
@@ -128,6 +139,37 @@ for tc in range(1, int(input()) + 1):
 
 
 ### 1.2. 프림 알고리즘(Prim’s algorithm)
+
+```python
+
+def prim(start_node):
+    global adj_matrix
+    INF = float('inf')
+    parents = [None] * N
+    costs = [INF] * N
+    costs[start_node] = 0
+    
+    visited = [False for _ in range()]
+	
+    for _ in range(V):
+        minimum_cost = INF
+        for node in range(V):
+            if not visited[node] and costs[node] < minimum_cost:
+                next_node = node
+                minimum_costs = costs[node]
+        visited[next_node] = True
+        
+        adj_nodes = adj_matrix[next_node]
+        for adj_node in adj_nodes:
+            w = adj_nodes[adj_node] # 가중치
+           	if not visited[adj_node] and w < costs[adj_node]:
+                costs[adj_node] = w
+                parents[adj_node] = next_node
+                              
+    return sum(costs)            
+```
+
+
 
 ```python
 for tc in range(1, int(input()) + 1):
