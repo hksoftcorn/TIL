@@ -169,6 +169,12 @@ for tc in range(1,T+1):
 ##### solution1.py - Kruskal
 
 ```python
+def find_set(x):
+    while p[x] != x:
+        x = p[x]
+    return x
+
+
 T = int(input())
 for tc in range(1,T+1):
     V, E = map(int, input().split()) # V(Vertex): 정점은 0번부터 V까지, E(Edge): 간선의 수
