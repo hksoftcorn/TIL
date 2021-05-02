@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form action="/todo/">
+    <input type="text">
+    <button>Add</button>
+  </form>
+  <ul>
+
+  </ul>
+
+  <script>
+    // step1. 함수화 : 빈 값이 첫 value 값으로 들어가기 때문에 함수화가 필요합니다!
+    // step2. 파라미터 : todo 파라미터를 넣어서 입력값을 넣게 됩니다.
+    // step3. event : 
+
+
+    function addTodo (todo) {
+    // input 요소를 선택하고, value 값을 저장한다.
+    const input = document.querySelector('input')
+    // const content = input.value
+
+    
+    // 새로운 li 요소 생성, input value를 innerText로 넣는다.
+    const li = document.createElement('li')
+    li.innerText = todo
+
+    // ul 요소를 선택, append
+    const ul = document.querySelector('ul')
+    ul.appendChild(li)
+    }
+
+
+    
+    // 버튼에 이벤트 리스너 작성
+    // const button = document.querySelector('button')
+    // button.addEventListener('click', function (event) {
+    //   event.preventDefault()
+      
+    //   const input = document.querySelector('input')
+    //   const content = input.value
+      
+    //   const li = document.createElement('li')
+    //   li.innerText = content
+      
+    //   const ul = document.querySelector('ul')
+    //   ul.appendChild(li)
+    // })
+    
+
+    // 이벤트 타겟 설정
+    const form = document.querySelector('form')
+
+    // form.addEventListener('submit', function (event) {
+    //   event.preventDefault()
+
+    //   const input = document.querySelector('input')
+    //   const content = input.value
+
+    //   const li = document.createElement('li')
+    //   li.innerText = content
+
+    //   const ul = document.querySelector('ul')
+    //   ul.appendChild(li)
+
+    //   event.target.reset()    // input 값을 초기화
+    // })
+
+    function addTodo (event) {
+      event.preventDefault()
+
+      const input = document.querySelector('input')
+      const content = input.value
+
+      if (content && content.trim()) {
+        const li = document.createElement('li')
+        li.innerText = content
+  
+        const ul = document.querySelector('ul')
+        ul.appendChild(li)
+  
+        event.target.reset()    // input 값을 초기화
+      } else {
+        alert('할 일을 입력해주세요.')
+        event.target.reset()
+      }
+    }
+
+    form.addEventListener('submit', addTodo)
+  </script>
+</body>
+</html>
