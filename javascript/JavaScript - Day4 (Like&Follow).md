@@ -147,7 +147,7 @@ def likes(request, article_pk):
             'count': article.like_users.count(),
         }
         return JsonResponse(context)
-    return redirect('accounts:login')
+    return HttpResponse(status=401)
 ```
 
 ```django
@@ -360,7 +360,7 @@ def follow(request, user_pk):
                 'followers_count': you.followers.count(),
                 'followings_count': you.followings.count(),
             }
-        return JsonResponse(context)
+    	    return JsonResponse(context)
     return HttpResponse(status=401)
 ```
 
