@@ -30,8 +30,8 @@
 
 - 각 컴포넌트는 독립적으로 데이터를 관리
 - 데이터는 단방향 흐름으로 부모 -> 자식 간의 전달만 가능하며 반대의 경우 이벤트를 통해 전달
-- 장점 : 데이터의 흐름을 직관적으로 파악 가능
-- 단점 : 컴포넌트 중첩이 깊어지는 경우 동위 관계의 컴포넌트로의 데이터 전달이 불편해짐
+  - 장점 : 데이터의 흐름을 직관적으로 파악 가능
+  - 단점 : 컴포넌트 중첩이 깊어지는 경우 동위 관계의 컴포넌트로의 데이터 전달이 불편해짐
 
 
 
@@ -119,7 +119,7 @@
   - 실제 계산된 값을 사용하는 것처럼 getters는 저장소의 상태를 기준으로 계산
   - i.g. state에 todo list의 해야 할 일의 목록의 경우  todo가 완료된 목록만 필터링해서 보여줘야 하는 경우가 있음
   - getters에서 completed의 값이 true인 요소가 필터링 해서 계산된 값을 담아 놓을 수 있음
-- getters 자체가  state 자체를 변경하지는 않음
+  - getters 자체가  state 자체를 변경하지는 않음
   - state를 특정한 조건에 따라 구분만 함
   - 즉, 계산된 값을 가져옴
 
@@ -842,46 +842,14 @@ export default {
 - mapAction의 인자는 호출시에 파라미터에 넣어주면 됩니다.
 
 ```vue
-<template>
-  <div>
-    <span 
-      @click="updateTodo(todo)"
-      :class="{ completed: todo.completed }"
-    >{{ todo.title }}</span>
-    <button @click="deleteTodo(todo)">Delete</button>
-  </div>
-</template>
+import { mapGetters } from 'vuex'  
 
-<script>
-import { mapActions } from 'vuex'
-
-export default {
-  name: 'TodoListItem',
-  props: {
-    todo: {
-      type: Object,
-    }
-  },
-  methods: {
-    // deleteTodo: function () {
-    //   this.$store.dispatch('deleteTodo', this.todo)
-    // },
-    // updateTodo: function () {
-    //   this.$store.dispatch('updateTodo', this.todo)
-    // }
-    ...mapActions([
-      'deleteTodo',
-      'updateTodo'
+  computed: {
+    ...mapGetters([
+      'completedTodosCount',
+      'uncompletedTodosCount'
     ])
   }
-}
-</script>
-
-<style scoped>
-  .completed {
-    text-decoration: line-through;
-  }
-</style>
 ```
 
 

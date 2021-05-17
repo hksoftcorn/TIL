@@ -118,7 +118,7 @@ import VideoListItem from '@/components/VideoListItem'
 
 export default {
   name: 'VideoList',
-	components: {
+  components: {
     VideoListItem,
   },
   computed: {
