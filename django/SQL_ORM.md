@@ -25,7 +25,7 @@
   * migrate
 
     ```bash
-  $ python manage.py sqlmigrate users 0001
+    $ python manage.py sqlmigrate users 0001
     ```
 
 * `db.sqlite3` 활용
@@ -62,7 +62,6 @@
     sqlite > .schema users_user
     CREATE TABLE IF NOT EXISTS "users_user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "first_name" varchar(10) NOT NULL, "last_name" varchar(10) NOT NULL, "age" integer NOT NULL, "country" varchar(10) NOT NULL, "phone" varchar(15) NOT NULL, "balance" integer NOT NULL);
     ```
-
 
 
 ---
@@ -156,14 +155,13 @@
    ```python
    # orm
    user = User.objects.get(pk=101)
-user.delete()
+   user.delete()
    ```
-   
+
    ```sql
    -- sql
    DELETE FROM users_user WHERE id=101;
    ```
-
 
 
 ---
@@ -332,17 +330,20 @@ user.delete()
 3. 잔고는 오름차순, 나이는 내림차순으로 10명?
 
       ```python
+
+      ```
    # orm
    User.objects.order_by('balance', '-age')[:10]
    ```
-```
-   
+
+   ```
+
    ```sql
    -- sql
    SELECT * FROM users_user 
    ORDER BY balance, age DESC 
    LIMIT 10;
-```
+   ```
 
 4. 성, 이름 내림차순 순으로 5번째 있는 사람
 
@@ -378,17 +379,17 @@ user.delete()
 
    ```python
    # orm
-   
+
    User.objects.aggregate(Avg('age'))
    # {'age__avg': 28.940594059405942}
-   
+
    User.objects.aggregate(total_age_avg=Avg('age'))
    # {'total_age_avg': 28.940594059405942}
    ```
 
       ```sql
    -- sql
-   
+
    SELECT AVG(age)
    FROM users_user;
       ```
@@ -397,7 +398,7 @@ user.delete()
 
    ```python
    # orm
-   
+
    User.objects.filter(last_name='김').aggregate(Avg('age'))
    ```
 
@@ -430,10 +431,10 @@ user.delete()
 
       ```sql
    -- sql
-   
+
    SELECT MAX(balance)
    FROM users_user;
-   
+
    SELECT balance
    FROM users_user
    ORDER BY balance DESC
@@ -515,7 +516,7 @@ GROUP BY country;
 
    ```django
    <!-- detail.html -->
-   
+
    {% for article in articles %}
    	<p>이 게시글에 작성된 댓글은 총 {{ article.total_comment }}개</p>
        <p>pub_date : {{ article.pub_date }}</p>

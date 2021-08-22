@@ -1,6 +1,6 @@
 [TOC]
 
-# Django - Day3 Practice
+# 	Django - Day3 Practice
 
 *가상환경 Virtual Environment*
 

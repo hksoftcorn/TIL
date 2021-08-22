@@ -16,7 +16,7 @@
   - Django를 통해 응답한 template 
   - 혹은 DRF를 통해 응답한 JSON
 
-### 1.2. Clent
+### 1.2. Client
 
 - 서버에게 그 서버가 맞는 서비스를 요청하고
 - 서비스 요청을 위해 필요한 인자를 서버가 원하는 방식에 맞게 제공하며
@@ -115,9 +115,9 @@
 
   - 요청 헤더의 Origin을 보면 localhost:8000으로 부터 요청이 왔다는 것을 알 수 있음
   - 서버는 이에 대한 응답으로 Access-Control-Allow-Origin 헤더를 다시 전송
-  - 만약 서버의 리소스 소유자가 오진 localhost:8000의 요청만 리소스에 대한 접근을 허용하려는 경우 '*'가 아닌 'Access-Control-Allow-Origin: localhost: 8000'을 전송해야 함
+  - 만약 서버의 리소스 소유자가 오직 localhost:8000의 요청만 리소스에 대한 접근을 허용하려는 경우 '*'가 아닌 'Access-Control-Allow-Origin: localhost: 8000'을 전송해야 함
 
-  ​
+  
 
 ## 3. Practice
 
@@ -307,7 +307,7 @@ export default {
           url: 'http://127.0.0.1:8000/todos/',
           data: todoItem
         })
-          .then((res) => {W
+          .then((res) => {
             console.log(res)
             this.$router.push({ name: 'TodoList' })
           })
@@ -675,6 +675,15 @@ class Todo(models.Model):
     
 ```
 
+```
+# DB 지우기
+# python manage.py makemigrations
+1
+1
+
+# python manage.py migrate
+```
+
 ```python
 # accounts - serializers.py
 
@@ -783,7 +792,7 @@ export default {
 
 ```
 pip install djangorestframework-jwt
-pip freeze > requirements.txt 
+pip freeze > requirements.txt
 
 
 # accounts - urls.py
@@ -949,9 +958,73 @@ export default {
     }
 ```
 
+```vue
+// App.vue
+<template>
+  <div id="app">
+    <div id="nav">
+      <span v-if="isLogin">
+        <router-link :to="{ name: 'TodoList' }">Todo List</router-link> | 
+        <router-link :to="{ name: 'CreateTodo' }">Create Todo</router-link> |
+      </span>
+      <span v-else>
+        <router-link :to="{ name: 'Signup' }">Signup</router-link> |
+        <router-link :to="{ name: 'Login' }">Login</router-link> 
+      </span>
+    </div>
+    <router-view @login="isLogin = true"/>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App',
+  data: function () {
+    return {
+      isLogin: false,
+    }
+  },
+  created: function () {
+    const token = localStorage.getItem('jwt')
+    if (token) {
+      this.isLogin = true
+    }
+  }
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>
+
+```
+
 
 
 ### 6.6. Client : Vue-Logout
+
+- router-link 기능으로 @click의 기본 이벤트가 발생하지 않기 때문에 
+- `click.native`로 클릭 본연의 기능을 수행할 수 있도록 합니다.
+- 또한 클라이언트 단의 `this.isLogin`의 값을 변경해주어 백엔드와 프론트간의 데이터 상태 변경을 동일하게 맞추어줍니다.
 
 ```vue
 // App.vue
@@ -970,6 +1043,11 @@ export default {
 
 
 ### 6.7. 권한 AUTHORIZATION 
+
+- 서버 측에서 권한을 검증합니다. 서버에서 토큰에 대한 인증 및 권한 절차를 진행하게 됩니다.
+- 데코레이터의 순서가 중요합니다.
+- 1) 유효한 토큰인지 확인합니다.
+- 2) method의 권한을 인증하게 됩니다.
 
 ```python
 from django.shortcuts import get_object_or_404
@@ -994,12 +1072,14 @@ from .models import Todo
 def todo_list_create(request):
     if request.method == 'GET':
         # todos = Todo.objects.all()
+        # 사용자(로그인한 유저)가 작성한 todos를 불러옵니다.
         serializer = TodoSerializer(request.user.todos, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
         serializer = TodoSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            # user의 정보를 같이 넘겨줍니다.
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -1024,11 +1104,23 @@ def todo_update_delete(request, todo_pk):
         return Response({ 'id': todo_pk })
 ```
 
+```vue
+# 서버를 끊고 다시 켜줍니다.
+```
+
+
+
 #### *Postman
 
 ```
+http://127.0.0.1:8000/accounts/api-token-auth/
+username
+password
+
+http://127.0.0.1:8000/todos/
 Headers
-AUTHORIZATION : JWT
+# JWT 띄어쓰기 꼭 포함
+AUTHORIZATION : JWT ...
 
 Body - form-data
 title : 할일1
@@ -1042,11 +1134,255 @@ title : 할일1
       this.getTodos()
     } else {
       this.$router.push({ name: 'Login' })
+	}
+```
+
+```vue
+// App.vue
+
+<router-view @login="isLogin = true"/>
 ```
 
 
 
 ### 6.8. Token 붙이기
+
+- 토큰이 없으니까 ERROR : resource: the server responded with a status of 401 (Unauthorized)
+
+```vue
+  methods: {
+    setToken: function () {
+      const token = localStorage.getItem('jwt')
+      const config = {
+        Authorization: `JWT ${token}`
+      }
+      return config
+    },
+```
+
+```vue
+// TodoList.vue
+
+<template>
+  <div>
+    <ul>
+      <li v-for="(todo, idx) in todos" :key="idx">
+        <span @click="updateTodoStatus(todo)" :class="{ completed: todo.completed }">{{ todo.title }}</span>
+        <button @click="deleteTodo(todo)" class="todo-btn">X</button>
+      </li>
+    </ul>
+    <!-- <button @click="getTodos">Get Todos</button> -->
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+
+export default {
+  name: 'TodoList',
+  data: function () {
+    return {
+      todos: [],
+    }
+  },
+  methods: {
+    setToken: function () {
+      const token = localStorage.getItem('jwt')
+      const config = {
+        Authorization: `JWT ${token}`
+      }
+      return config
+    },
+    getTodos: function () {
+      axios({
+        method: 'get',
+        url: 'http://127.0.0.1:8000/todos/',
+        headers: this.setToken()
+      })
+        .then((res) => {
+          console.log(res)
+          this.todos = res.data
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    deleteTodo: function (todo) {
+      axios({
+        method: 'delete',
+        url: `http://127.0.0.1:8000/todos/${todo.id}/`,
+        headers: this.setToken()
+      })
+        .then((res) => {
+          console.log(res)
+          this.getTodos()
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    updateTodoStatus: function (todo) {
+      const todoItem = {
+        ...todo,
+        completed: !todo.completed
+      }
+
+      axios({
+        method: 'put',
+        url: `http://127.0.0.1:8000/todos/${todo.id}/`,
+        headers: this.setToken(),
+        data: todoItem,
+      })
+        .then((res) => {
+          console.log(res)
+          todo.completed = !todo.completed
+        })
+      },
+    },
+    created: function () {
+      if (localStorage.getItem('jwt')) {
+        this.getTodos()
+      } else {
+        this.$router.push({ name: 'Login' })
+      }
+  }
+}
+</script>
+
+<style scoped>
+  .todo-btn {
+    margin-left: 10px;
+  }
+
+  .completed {
+    text-decoration: line-through;
+    color: rgb(112, 112, 112);
+  }
+</style>
+
+```
+
+```vue
+// CreateTodo.vue
+<template>
+  <div>
+    <input type="text" v-model.trim="title" @keyup.enter="createTodo">
+    <button @click="createTodo">+</button>
+  </div>
+</template>
+
+<script>
+import axios from'axios'
+
+export default {
+  name: 'CreateTodo',
+  data: function () {
+    return {
+      title: null,
+    }
+  },
+  methods: {
+    setToken: function () {
+      const token = localStorage.getItem('jwt')
+      const config = {
+        Authorization: `JWT ${token}`
+      }
+      return config
+    },
+    createTodo: function () {
+      const todoItem = {
+        title: this.title,
+      }
+
+      if (todoItem.title) {
+        axios({
+          method: 'post',
+          url: 'http://127.0.0.1:8000/todos/',
+          data: todoItem,
+          headers: this.setToken()
+        })
+          .then((res) => {
+            console.log(res)
+            this.$router.push({ name: 'TodoList' })
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+        }
+    },
+  }
+}
+</script>
+
+```
+
+```vue
+// App.vue
+<template>
+  <div id="app">
+    <div id="nav">
+      <span v-if="isLogin">
+        <router-link :to="{ name: 'TodoList' }">Todo List</router-link> | 
+        <router-link :to="{ name: 'CreateTodo' }">Create Todo</router-link> |
+        <router-link @click.native="logout" to="#">Logout</router-link>
+      </span>
+      <span v-else>
+        <router-link :to="{ name: 'Signup' }">Signup</router-link> |
+        <router-link :to="{ name: 'Login' }">Login</router-link> 
+      </span>
+    </div>
+    <router-view @login="isLogin = true"/>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App',
+  data: function () {
+    return {
+      isLogin: false,
+    }
+  },
+  methods: {
+    logout: function () {
+      this.isLogin = false
+      localStorage.removeItem('jwt')
+      this.$router.push({ name: 'Login' })
+    }
+  },
+  created: function () {
+    const token = localStorage.getItem('jwt')
+    if (token) {
+      this.isLogin = true
+    }
+  }
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>
+
+```
 
 
 

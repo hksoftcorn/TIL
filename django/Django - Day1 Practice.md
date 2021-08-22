@@ -196,7 +196,6 @@ def index(request):
 
   `[BASE_DIR / 'my_pjt' / 'templates']`
 
-  
 
 ### 4. Practices
 

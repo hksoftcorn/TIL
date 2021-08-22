@@ -405,8 +405,7 @@ export default {
 
 - actions에는
 
-
-- context가 첫 번째 인자로 들어가있습니다. context에는 많은 데이터가 있음. 이는 모든 속성에 접근 가능 -> 다양한 조작 가능.
+  - context가 첫 번째 인자로 들어가있습니다. context에는 많은 데이터가 있음. 이는 모든 속성에 접근 가능 -> 다양한 조작 가능.
 - dispatch를 통해 수행
 
 ```vue
@@ -417,6 +416,8 @@ export default {
       console.log(context)
     }
 ```
+
+
 
 ```vue
 // TodoForm
@@ -609,10 +610,10 @@ export default new Vuex.Store({
   - ```javascript
     let obj1 = { foo: 'bar', x: 42 };
     let obj2 = { foo: 'baz', y: 13 };
-
+    
     let clonedObj = { ...obj1 };
     // Object { foo: "bar", x: 42 }
-
+    
     let mergedObj = { ...obj1, ...obj2 };
     // Object { foo: "baz", x: 42, y: 13 }
     ```
@@ -888,5 +889,5 @@ plugins: [createPersistedState()],
 
 - 즉, 필요한 순간이 왔을 때 사용하는 것을 권장
 
-  ​
+  
 

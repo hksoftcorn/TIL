@@ -431,9 +431,9 @@ static/articles 폴더 생성
   - Django 프로젝트에서 사용하는 모든 정적 파일을 한 곳에 모아넣는 경로
   - collectstatic이 배포를 위해 정적 파일을 
 - STATIC_URL
-  - 
+  - ​
 - STATICFILES_DIRS
-  - 
+  - ​
 
 > static file 활용 STEP
 >

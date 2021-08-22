@@ -79,8 +79,11 @@ DTL(Django template language) 데이터 표현을 제어하는 도구이자 언�
 - pjt 폴더 templates/base.html
 
   -   ```django
-    {% block content %} 
-    {% endblock %}
+        {% block content %} 
+        {% endblock %}
+      ```
+    ```
+
     ```
 
 - settings.py에서 DIR = [BASE_DIR / 'firstpjt' / 'templates', ]
